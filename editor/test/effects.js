@@ -19,7 +19,7 @@ import {
 	replaceBlocks,
 	editPost,
 	savePost,
-	requestMetaboxUpdate,
+	requestMetaBoxUpdate,
 } from '../actions';
 import effects from '../effects';
 import * as selectors from '../selectors';
@@ -255,8 +255,8 @@ describe( 'effects', () => {
 		const dispatch = jest.fn();
 		const store = { getState: () => {}, dispatch };
 
-		it( 'should dispatch metabox updates on success for dirty metaboxes.', () => {
-			selectors.getDirtyMetaboxes.mockReturnValue( [ 'normal', 'side' ] );
+		it( 'should dispatch meta box updates on success for dirty meta boxes.', () => {
+			selectors.getDirtyMetaBoxes.mockReturnValue( [ 'normal', 'side' ] );
 
 			const post = {
 				id: 1,
@@ -272,8 +272,8 @@ describe( 'effects', () => {
 			handler( { post: post, previousPost: post }, store );
 
 			expect( dispatch ).toHaveBeenCalledTimes( 2 );
-			expect( dispatch ).toHaveBeenCalledWith( requestMetaboxUpdate( 'normal' ) );
-			expect( dispatch ).lastCalledWith( requestMetaboxUpdate( 'side' ) );
+			expect( dispatch ).toHaveBeenCalledWith( requestMetaBoxUpdate( 'normal' ) );
+			expect( dispatch ).lastCalledWith( requestMetaBoxUpdate( 'side' ) );
 		} );
 	} );
 

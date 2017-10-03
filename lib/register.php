@@ -26,21 +26,20 @@ function the_gutenberg_project() {
 	<div class="gutenberg">
 		<div id="editor" class="gutenberg__editor"></div>
 	</div>
-	<!-- Classic Metabox iFrame -->
 	<?php
 }
 
 /**
- * Set up global variables so that plugins will add metaboxes as if we were
+ * Set up global variables so that plugins will add meta boxes as if we were
  * using the main editor.
  */
-function gutenberg_trick_plugins_into_registering_metaboxes() {
+function gutenberg_trick_plugins_into_registering_meta_boxes() {
 	global $pagenow;
 
 	if ( isset( $_GET['page'] ) && 'gutenberg' === $_GET['page'] && 'admin.php' === $pagenow ) {
 		global $hook_suffix, $post, $typenow;
 
-		$GLOBALS['_gutenberg_restore_globals_after_metaboxes'] = array(
+		$GLOBALS['_gutenberg_restore_globals_after_meta_boxes'] = array(
 			'pagenow'        => $pagenow,
 			'hook_suffix'    => $hook_suffix,
 		);
@@ -49,19 +48,20 @@ function gutenberg_trick_plugins_into_registering_metaboxes() {
 		$hook_suffix = 'post.php';
 
 		/**
-		 * Sadly this will make rendering the metaboxes in a front end version
-		 * of Gutenberg not possible without changes to core.
+		 * We potentially want to change where we call `createEditorInstance()`
+		 * to hopefully prevent a lot of extra hacks. ACF needs admin head to
+		 * fire to register meta boxes, where other plugins do not.
 		 */
-		// Fake global post state to ensure plugins who do non standard functionality ( ACF ) correctly register metaboxes.
+		// Fake global post state to ensure plugins who do non standard functionality ( ACF ) correctly register meta boxes.
 		add_action( 'admin_head', 'gutenberg_set_post_state', 1 );
-		// As early as possible, but after any plugins ( ACF ) that adds metaboxes.
-		add_action( 'admin_head', 'gutenberg_collect_metabox_data', 99 );
+		// As early as possible, but after any plugins ( ACF ) that adds meta boxes.
+		add_action( 'admin_head', 'gutenberg_collect_meta_box_data', 99 );
 	}
 }
-// As late as possible, but before any logic that adds metaboxes.
+// As late as possible, but before any logic that adds meta boxes.
 add_action(
 	'plugins_loaded',
-	'gutenberg_trick_plugins_into_registering_metaboxes'
+	'gutenberg_trick_plugins_into_registering_meta_boxes'
 );
 
 /**
@@ -74,7 +74,7 @@ function gutenberg_set_post_state() {
 	$potential_hookname = 'post';
 
 	// Set original screen to return to.
-	$GLOBALS['_gutenberg_restore_globals_after_metaboxes']['current_screen'] = $current_screen;
+	$GLOBALS['_gutenberg_restore_globals_after_meta_boxes']['current_screen'] = $current_screen;
 
 	// Override screen as though we are on post.php.
 	WP_Screen::get( $potential_hookname )->set_current_screen();
@@ -89,19 +89,19 @@ function gutenberg_set_post_state() {
 }
 
 /**
- * Collect information about metaboxes registered for the current post.
+ * Collect information about meta_boxes registered for the current post.
  *
- * This is used to tell React and Redux whether the metabox location has
- * metaboxes.
+ * This is used to tell React and Redux whether the meta box location has
+ * meta boxes.
  */
-function gutenberg_collect_metabox_data() {
-	global $_gutenberg_restore_globals_after_metaboxes, $current_screen, $wp_meta_boxes, $post, $typenow;
+function gutenberg_collect_meta_box_data() {
+	global $_gutenberg_restore_globals_after_meta_boxes, $current_screen, $wp_meta_boxes, $post, $typenow;
 
 	// Depending on whether we are creating a post or editing one this may need to be different.
 	$potential_hookname = 'post';
 
 	// Set original screen to return to.
-	$GLOBALS['_gutenberg_restore_globals_after_metaboxes']['current_screen'] = $current_screen;
+	$GLOBALS['_gutenberg_restore_globals_after_meta_boxes']['current_screen'] = $current_screen;
 
 	// Override screen as though we are on post.php We have access to WP_Screen etc. by this point.
 	WP_Screen::get( $potential_hookname )->set_current_screen();
@@ -128,7 +128,7 @@ function gutenberg_collect_metabox_data() {
 	}
 
 	/*
-	 * WIP: Collect and send information needed to render metaboxes.
+	 * WIP: Collect and send information needed to render meta boxes.
 	 * From wp-admin/edit-form-advanced.php
 	 * Relevant code there:
 	 * do_action( 'do_meta_boxes', $post_type, {'normal','advanced','side'}, $post );
@@ -246,10 +246,10 @@ function gutenberg_collect_metabox_data() {
 		add_meta_box( 'authordiv', __( 'Author', 'gutenberg' ), 'post_author_meta_box', $screen, 'normal', 'core' );
 	}
 
-	// Set up metabox locations.
+	// Set up meta box locations.
 	$locations = array( 'normal', 'advanced', 'side' );
 
-	// Foreach location run the hooks metaboxes are potentially registered on.
+	// Foreach location run the hooks meta boxes are potentially registered on.
 	foreach ( $locations as $location ) {
 		do_action( 'add_meta_boxes', $post->post_type, $post );
 		do_action( "add_meta_boxes_{$post->post_type}", $post );
@@ -262,44 +262,41 @@ function gutenberg_collect_metabox_data() {
 	}
 	do_action( 'edit_form_advanced', $post );
 
-	// Copy metabox state.
-	$_metaboxes_copy = $wp_meta_boxes;
+	// Copy meta box state.
+	$_meta_boxes_copy = $wp_meta_boxes;
 
 	/**
-	 * Documented in lib/metabox-partial-page.php
+	 * Documented in lib/meta-box-partial-page.php
 	 *
-	 * @param array $wp_meta_boxes Global metabox state.
+	 * @param array $wp_meta_boxes Global meta box state.
 	 */
-	$_metaboxes_copy = apply_filters( 'filter_gutenberg_metaboxes', $_metaboxes_copy );
+	$_meta_boxes_copy = apply_filters( 'filter_gutenberg_meta_boxes', $_meta_boxes_copy );
 
-	$metabox_data = array();
+	$meta_box_data = array();
 
-	// If the metabox should be empty set to false.
+	// If the meta box should be empty set to false.
 	foreach ( $locations as $location ) {
-		if ( isset( $_metaboxes_copy[ $post->post_type ][ $location ] ) && gutenberg_is_metabox_empty( $_metaboxes_copy, $location, $post->post_type ) ) {
-			$metabox_data[ $location ] = false;
+		if ( isset( $_meta_boxes_copy[ $post->post_type ][ $location ] ) && gutenberg_is_meta_box_empty( $_meta_boxes_copy, $location, $post->post_type ) ) {
+			$meta_box_data[ $location ] = false;
 		} else {
-			$metabox_data[ $location ] = true;
+			$meta_box_data[ $location ] = true;
 		}
 	}
-
-	$GLOBALS['gutenberg_metabox_data'] = $metabox_data;
 
 	/**
 	 * Sadly we probably can not add this data directly into editor settings.
 	 *
-	 * ACF and other metaboxes need admin_head to fire for metabox registry.
+	 * ACF and other meta boxes need admin_head to fire for meta box registry.
 	 * admin_head fires after admin_enqueue_scripts which is where we create our
 	 * editor instance. If a cleaner solution can be imagined, please change
 	 * this, and try to get this data to load directly into the editor settings.
 	 */
 	wp_add_inline_script(
 		'wp-editor',
-		'window._wpGutenbergEditor.dispatch( { type: \'INITIALIZE_METABOX_STATE\', metaboxes:' . wp_json_encode( $metabox_data ) . '} )'
 	);
 
 	// Restore any global variables that we temporarily modified above.
-	foreach ( $_gutenberg_restore_globals_after_metaboxes as $name => $value ) {
+	foreach ( $_gutenberg_restore_globals_after_meta_boxes as $name => $value ) {
 		$GLOBALS[ $name ] = $value;
 	}
 }

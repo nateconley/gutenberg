@@ -19,9 +19,9 @@ const blocksCSSPlugin = new ExtractTextPlugin( {
 	filename: './blocks/build/style.css',
 } );
 
-// CSS loader for styles specific to loading inside metabox iframes.
-const metaboxIframeCSSPlugin = new ExtractTextPlugin( {
-	filename: './editor/build/metabox-iframe.css',
+// CSS loader for styles specific to loading inside meta box iframes.
+const metaBoxIframeCSSPlugin = new ExtractTextPlugin( {
+	filename: './editor/build/meta-box-iframe.css',
 } );
 
 // Configuration for the ExtractTextPlugin.
@@ -114,17 +114,17 @@ const config = {
 				use: editBlocksCSSPlugin.extract( extractConfig ),
 			},
 			{
-				test: /metabox-iframe\.scss$/,
+				test: /meta-box-iframe\.scss$/,
 				include: [
 					/editor/,
 				],
-				use: metaboxIframeCSSPlugin.extract( extractConfig ),
+				use: metaBoxIframeCSSPlugin.extract( extractConfig ),
 			},
 			{
 				test: /\.s?css$/,
 				exclude: [
 					/blocks/,
-					/metabox-iframe/,
+					/meta-box-iframe/,
 				],
 				use: mainCSSExtractTextPlugin.extract( extractConfig ),
 			},
@@ -136,7 +136,7 @@ const config = {
 		} ),
 		blocksCSSPlugin,
 		editBlocksCSSPlugin,
-		metaboxIframeCSSPlugin,
+		metaBoxIframeCSSPlugin,
 		mainCSSExtractTextPlugin,
 		new webpack.LoaderOptionsPlugin( {
 			minimize: process.env.NODE_ENV === 'production',

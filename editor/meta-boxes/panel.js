@@ -9,7 +9,7 @@ import classnames from 'classnames';
 import { Component } from '@wordpress/element';
 import { Button, Dashicon } from '@wordpress/components';
 
-class MetaboxPanel extends Component {
+class MetaBoxPanel extends Component {
 	constructor( props ) {
 		super( ...arguments );
 		this.state = {
@@ -57,4 +57,4 @@ class MetaboxPanel extends Component {
 	}
 }
 
-export default MetaboxPanel;
+export default MetaBoxPanel;

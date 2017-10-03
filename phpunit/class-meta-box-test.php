@@ -1,22 +1,22 @@
 <?php
 /**
- * Test for Metabox integration.
+ * Test for Meta box integration.
  *
  * @package Gutenberg
  */
 
 /**
- * Tests metabox integration.
+ * Tests meta box integration.
  *
- * Most of the PHP portion of the metabox integration is not testeable due to
+ * Most of the PHP portion of the meta box integration is not testeable due to
  * WordPress's architecture. These tests cover the portions that are testable.
  */
-class Metabox_Test extends WP_UnitTestCase {
+class Meta_Box_Test extends WP_UnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
 
-		$this->metaboxes = array(
+		$this->meta_boxes = array(
 			'post'         => array(
 				'normal'   => array(
 					'core' => array(
@@ -114,93 +114,93 @@ class Metabox_Test extends WP_UnitTestCase {
 	/**
 	 * Tests for empty meta box.
 	 */
-	public function test_gutenberg_is_metabox_empty_with_empty_metabox() {
+	public function test_gutenberg_is_meta_box_empty_with_empty_meta_box() {
 		$context = 'side';
 		$post_type = 'post';
-		$metaboxes = $this->metaboxes;
-		$metaboxes[ $post_type ][ $context ] = array();
+		$meta_boxes = $this->meta_boxes;
+		$meta_boxes[ $post_type ][ $context ] = array();
 
-		$is_empty = gutenberg_is_metabox_empty( $metaboxes, $context, $post_type );
+		$is_empty = gutenberg_is_meta_box_empty( $meta_boxes, $context, $post_type );
 		$this->assertTrue( $is_empty );
 	}
 
 	/**
-	 * Tests for non empty metabox area.
+	 * Tests for non empty meta box area.
 	 */
-	public function test_gutenberg_is_metabox_empty_with_non_empty_metabox() {
+	public function test_gutenberg_is_meta_box_empty_with_non_empty_meta_box() {
 		$context = 'normal';
 		$post_type = 'post';
-		$metaboxes = $this->metaboxes;
+		$meta_boxes = $this->meta_boxes;
 
-		$is_empty = gutenberg_is_metabox_empty( $metaboxes, $context, $post_type );
+		$is_empty = gutenberg_is_meta_box_empty( $meta_boxes, $context, $post_type );
 		$this->assertFalse( $is_empty );
 	}
 
 	/**
 	 * Tests for non existant location.
 	 */
-	public function test_gutenberg_is_metabox_empty_with_non_existant_location() {
+	public function test_gutenberg_is_meta_box_empty_with_non_existant_location() {
 		$context = 'test';
 		$post_type = 'post';
-		$metaboxes = $this->metaboxes;
+		$meta_boxes = $this->meta_boxes;
 
-		$is_empty = gutenberg_is_metabox_empty( $metaboxes, $context, $post_type );
+		$is_empty = gutenberg_is_meta_box_empty( $meta_boxes, $context, $post_type );
 		$this->assertTrue( $is_empty );
 	}
 
 	/**
 	 * Tests for non existant page.
 	 */
-	public function test_gutenberg_is_metabox_empty_with_non_existant_page() {
+	public function test_gutenberg_is_meta_box_empty_with_non_existant_page() {
 		$context = 'normal';
 		$post_type = 'test';
-		$metaboxes = $this->metaboxes;
+		$meta_boxes = $this->meta_boxes;
 
-		$is_empty = gutenberg_is_metabox_empty( $metaboxes, $context, $post_type );
+		$is_empty = gutenberg_is_meta_box_empty( $meta_boxes, $context, $post_type );
 		$this->assertTrue( $is_empty );
 	}
 
 	/**
-	 * Test filtering of metabox data.
+	 * Test filtering of meta box data.
 	 */
-	public function test_gutenberg_filter_metaboxes() {
-		$metaboxes = $this->metaboxes;
-		// Add in a metabox.
-		$metaboxes['post']['normal']['high']['somemetabox'] = array( 'metabox-stuff' );
+	public function test_gutenberg_filter_meta_boxes() {
+		$meta_boxes = $this->meta_boxes;
+		// Add in a meta box.
+		$meta_boxes['post']['normal']['high']['some-meta-box'] = array( 'meta-box-stuff' );
 
-		$expected_metaboxes = $this->metaboxes;
-		// We expect to remove only core metaboxes.
-		$expected_metaboxes['post']['normal']['core'] = array();
-		$expected_metaboxes['post']['side']['core'] = array();
-		$expected_metaboxes['post']['normal']['high']['somemetabox'] = array( 'metabox-stuff' );
+		$expected_meta_boxes = $this->meta_boxes;
+		// We expect to remove only core meta boxes.
+		$expected_meta_boxes['post']['normal']['core'] = array();
+		$expected_meta_boxes['post']['side']['core'] = array();
+		$expected_meta_boxes['post']['normal']['high']['some-meta-box'] = array( 'meta-box-stuff' );
 
-		$actual = gutenberg_filter_metaboxes( $metaboxes );
-		$expected = $expected_metaboxes;
+		$actual = gutenberg_filter_meta_boxes( $meta_boxes );
+		$expected = $expected_meta_boxes;
 
 		$this->assertEquals( $expected, $actual );
 	}
 
 	/**
-	 * Test filtering of metabox data with taxonomy metaboxes.
+	 * Test filtering of meta box data with taxonomy meta boxes.
 	 *
 	 * By default Gutenberg will provide a much enhanced JavaScript alternative
-	 * to the metaboxes using the standard category and tags metabox callbacks.
+	 * to the meta boxes using the standard category and tags meta box callbacks.
 	 */
-	public function test_gutenberg_filter_metaboxes_for_taxonomies() {
-		$metaboxes = $this->metaboxes;
-		// Add in a metabox.
-		$expected_metaboxes['post']['normal']['high']['my-cool-tax'] = array( 'callback' => 'post_tags_meta_box' );
-		$expected_metaboxes['post']['normal']['high']['my-cool-hierarchical-tax'] = array( 'callback' => 'post_categories_meta_box' );
+	public function test_gutenberg_filter_meta_boxes_for_taxonomies() {
+		$meta_boxes = $this->meta_boxes;
+		// Add in a meta box.
+		$meta_boxes['post']['normal']['high']['my-cool-tax'] = array( 'callback' => 'post_tags_meta_box' );
+		$meta_boxes['post']['normal']['high']['my-cool-hierarchical-tax'] = array( 'callback' => 'post_categories_meta_box' );
 
-		$expected_metaboxes = $this->metaboxes;
-		// We expect to remove only core metaboxes.
-		$expected_metaboxes['post']['normal']['core'] = array();
-		$expected_metaboxes['post']['side']['core'] = array();
-		// We expect the high location to be empty even though we have registered metaboxes.
-		$expected_metaboxes['post']['normal']['high'] = array();
+		$expected_meta_boxes = $this->meta_boxes;
+		// We expect to remove only core meta boxes.
+		$expected_meta_boxes['post']['normal']['core'] = array();
+		$expected_meta_boxes['post']['side']['core'] = array();
+		// We expect the high location to be empty even though we have registered meta boxes.
+		$expected_meta_boxes['post']['normal']['high'] = array();
 
-		$actual = gutenberg_filter_metaboxes( $metaboxes );
-		$expected = $expected_metaboxes;
+		$actual = gutenberg_filter_meta_boxes( $meta_boxes );
+		$expected = $expected_meta_boxes;
 
 		$this->assertEquals( $expected, $actual );
 	}

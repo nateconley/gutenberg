@@ -521,39 +521,35 @@ export function notices( state = {}, action ) {
 	return state;
 }
 
-const defaultMetaboxState = {
-	advanced: {
+const defaultMetaBoxState = [
+	'advanced',
+	'normal',
+	'side',
+].reduce( ( result, key ) => {
+	result[ key ] = {
 		isActive: false,
 		isDirty: false,
 		isUpdating: false,
-	},
-	normal: {
-		isActive: false,
-		isDirty: false,
-		isUpdating: false,
-	},
-	side: {
-		isActive: false,
-		isDirty: false,
-		isUpdating: false,
-	},
-};
+	};
 
-export function legacyMetaboxes( state = defaultMetaboxState, action ) {
+	return result;
+}, {} );
+
+export function legacyMetaBoxes( state = defaultMetaBoxState, action ) {
 	switch ( action.type ) {
-		case 'INITIALIZE_METABOX_STATE':
+		case 'INITIALIZE_META_BOX_STATE':
 			const newState = {};
 
-			for ( const location in action.metaboxes ) {
-				newState[ location ] = { ...state[ location ], isActive: action.metaboxes[ location ] };
+			for ( const location in action.metaBoxes ) {
+				newState[ location ] = { ...state[ location ], isActive: action.metaBoxes[ location ] };
 			}
 
 			return newState;
-		case 'HANDLE_METABOX_RELOAD':
+		case 'HANDLE_META_BOX_RELOAD':
 			return { ...state, [ action.location ]: { ...state[ action.location ], isUpdating: false, isDirty: false } };
-		case 'REQUEST_METABOX_UPDATE':
+		case 'REQUEST_META_BOX_UPDATE':
 			return { ...state, [ action.location ]: { ...state[ action.location ], isUpdating: true, isDirty: false } };
-		case 'METABOX_STATE_CHANGED':
+		case 'META_BOX_STATE_CHANGED':
 			return { ...state, [ action.location ]: { ...state[ action.location ], isDirty: action.hasChanged } };
 		default:
 			return state;
@@ -572,5 +568,5 @@ export default optimist( combineReducers( {
 	saving,
 	notices,
 	userData,
-	legacyMetaboxes,
+	legacyMetaBoxes,
 } ) );

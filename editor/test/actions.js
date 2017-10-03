@@ -6,10 +6,10 @@ import {
 	replaceBlocks,
 	startTyping,
 	stopTyping,
-	requestMetaboxUpdate,
-	handleMetaboxReload,
-	metaboxStateChanged,
-	initializeMetaboxState,
+	requestMetaBoxUpdate,
+	handleMetaBoxReload,
+	metaBoxStateChanged,
+	initializeMetaBoxState,
 } from '../actions';
 
 describe( 'actions', () => {
@@ -57,45 +57,45 @@ describe( 'actions', () => {
 		} );
 	} );
 
-	describe( 'requestMetaboxUpdate', () => {
-		it( 'should return the REQUEST_METABOX_UPDATE action', () => {
-			expect( requestMetaboxUpdate( 'normal' ) ).toEqual( {
-				type: 'REQUEST_METABOX_UPDATE',
+	describe( 'requestMetaBoxUpdate', () => {
+		it( 'should return the REQUEST_META_BOX_UPDATE action', () => {
+			expect( requestMetaBoxUpdate( 'normal' ) ).toEqual( {
+				type: 'REQUEST_META_BOX_UPDATE',
 				location: 'normal',
 			} );
 		} );
 	} );
 
-	describe( 'handleMetaboxReload', () => {
-		it( 'should return the HANDLE_METABOX_RELOAD action with a location and node', () => {
-			expect( handleMetaboxReload( 'normal' ) ).toEqual( {
-				type: 'HANDLE_METABOX_RELOAD',
+	describe( 'handleMetaBoxReload', () => {
+		it( 'should return the HANDLE_META_BOX_RELOAD action with a location and node', () => {
+			expect( handleMetaBoxReload( 'normal' ) ).toEqual( {
+				type: 'HANDLE_META_BOX_RELOAD',
 				location: 'normal',
 			} );
 		} );
 	} );
 
-	describe( 'metaboxStateChanged', () => {
-		it( 'should return the METABOX_STATE_CHANGED action with a hasChanged flag', () => {
-			expect( metaboxStateChanged( 'normal', true ) ).toEqual( {
-				type: 'METABOX_STATE_CHANGED',
+	describe( 'metaBoxStateChanged', () => {
+		it( 'should return the META_BOX_STATE_CHANGED action with a hasChanged flag', () => {
+			expect( metaBoxStateChanged( 'normal', true ) ).toEqual( {
+				type: 'META_BOX_STATE_CHANGED',
 				location: 'normal',
 				hasChanged: true,
 			} );
 		} );
 	} );
 
-	describe( 'initializeMetaboxState', () => {
-		it( 'should return the METABOX_STATE_CHANGED action with a hasChanged flag', () => {
-			const metaboxes = {
+	describe( 'initializeMetaBoxState', () => {
+		it( 'should return the META_BOX_STATE_CHANGED action with a hasChanged flag', () => {
+			const metaBoxes = {
 				side: true,
 				normal: true,
 				advanced: false,
 			};
 
-			expect( initializeMetaboxState( metaboxes ) ).toEqual( {
-				type: 'INITIALIZE_METABOX_STATE',
-				metaboxes,
+			expect( initializeMetaBoxState( metaBoxes ) ).toEqual( {
+				type: 'INITIALIZE_META_BOX_STATE',
+				metaBoxes,
 			} );
 		} );
 	} );

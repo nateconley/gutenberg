@@ -778,13 +778,13 @@ function gutenberg_editor_scripts_and_styles( $hook ) {
 	}
 	wp_localize_script( 'wp-blocks', '_wpBlocksAttributes', $schemas );
 
-	// Get admin url for handling metaboxes.
-	$metabox_url = admin_url( 'post.php' );
-	$metabox_url = add_query_arg( array(
+	// Get admin url for handling meta boxes.
+	$meta_box_url = admin_url( 'post.php' );
+	$meta_box_url = add_query_arg( array(
 		'post'   => $post_id,
 		'action' => 'edit',
-	), $metabox_url );
-	wp_localize_script( 'wp-editor', '_wpMetaboxUrl', $metabox_url );
+	), $meta_box_url );
+	wp_localize_script( 'wp-editor', '_wpMetaBoxUrl', $meta_box_url );
 
 	// Initialize the editor.
 	$gutenberg_theme_support = get_theme_support( 'gutenberg' );
@@ -797,7 +797,6 @@ function gutenberg_editor_scripts_and_styles( $hook ) {
 	$editor_settings = array(
 		'wideImages' => $gutenberg_theme_support ? $gutenberg_theme_support[0]['wide-images'] : false,
 		'colors' => $color_palette,
-		'metaboxes' => isset( $GLOBALS['gutenberg_metabox_data'] ) ? $GLOBALS['gutenberg_metabox_data'] : 'EMPTY',
 	);
 
 	wp_add_inline_script( 'wp-editor', 'wp.api.init().done( function() {'

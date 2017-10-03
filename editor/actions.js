@@ -317,67 +317,66 @@ export function removeNotice( id ) {
 	};
 }
 
-// Metabox related actions.
 /**
- * Returns an action object used to check the state of metaboxes at a location.
+ * Returns an action object used to check the state of meta boxes at a location.
  *
- * This should only be fired once to initialize meta box state. If a metabox
+ * This should only be fired once to initialize meta box state. If a meta box
  * area is empty, this will set the store state to indicate that React should
  * not render the meta box area.
  *
- * Example: metaboxes = { side: true, normal: false }
- * This indicates that the sidebar has a metabox but the normal area does not.
+ * Example: metaBoxes = { side: true, normal: false }
+ * This indicates that the sidebar has a meta box but the normal area does not.
  *
- * @param {Object} metaboxes Whether metabox locations are active.
+ * @param {Object} metaBoxes Whether meta box locations are active.
  *
  * @return {Object} Action object
  */
-export function initializeMetaboxState( metaboxes ) {
+export function initializeMetaBoxState( metaBoxes ) {
 	return {
-		type: 'INITIALIZE_METABOX_STATE',
-		metaboxes,
+		type: 'INITIALIZE_META_BOX_STATE',
+		metaBoxes,
 	};
 }
 
 /**
- * Returns an action object used to signify that a metabox finished reloading.
+ * Returns an action object used to signify that a meta box finished reloading.
  *
- * @param {String} location Location of metabox: 'normal', 'sidebar'.
+ * @param {String} location Location of meta box: 'normal', 'sidebar'.
  *
  * @return {Object} Action object
  */
-export function handleMetaboxReload( location ) {
+export function handleMetaBoxReload( location ) {
 	return {
-		type: 'HANDLE_METABOX_RELOAD',
+		type: 'HANDLE_META_BOX_RELOAD',
 		location,
 	};
 }
 
 /**
- * Returns an action object used to request metabox update.
+ * Returns an action object used to request meta box update.
  *
- * @param {String} location Location of metabox: 'normal', 'sidebar'.
+ * @param {String} location Location of meta box: 'normal', 'sidebar'.
  *
  * @return {Object}     Action object
  */
-export function requestMetaboxUpdate( location ) {
+export function requestMetaBoxUpdate( location ) {
 	return {
-		type: 'REQUEST_METABOX_UPDATE',
+		type: 'REQUEST_META_BOX_UPDATE',
 		location,
 	};
 }
 
 /**
- * Returns an action object used to set metabox state changed.
+ * Returns an action object used to set meta box state changed.
  *
- * @param {String} location Location of metabox: 'normal', 'sidebar'.
- * @param {Boolean}     hasChanged Whether the metabox has changed.
+ * @param {String}  location   Location of meta box: 'normal', 'sidebar'.
+ * @param {Boolean} hasChanged Whether the meta box has changed.
  *
- * @return {Object}     Action object
+ * @return {Object} Action object
  */
-export function metaboxStateChanged( location, hasChanged ) {
+export function metaBoxStateChanged( location, hasChanged ) {
 	return {
-		type: 'METABOX_STATE_CHANGED',
+		type: 'META_BOX_STATE_CHANGED',
 		location,
 		hasChanged,
 	};

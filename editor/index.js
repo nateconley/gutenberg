@@ -41,15 +41,6 @@ const DEFAULT_SETTINGS = {
 	maxWidth: 608,
 };
 
-/**
- * Sadly we probably can not add this data directly into editor settings.
- *
- * ACF and other metaboxes need admin_head to fire for metabox registry.
- * admin_head fires after admin_enqueue_scripts which is where we create our
- * editor instance. If a cleaner solution can be imagined, please change
- * this, and try to get this data to load directly into the editor settings.
- */
-
 // Configure moment globally
 moment.locale( dateSettings.l10n.locale );
 if ( dateSettings.timezone.string ) {

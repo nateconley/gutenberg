@@ -20,7 +20,7 @@
 
 		window.parent.postMessage( {
 			action: 'resize',
-			source: 'metabox',
+			source: 'meta-box',
 			location: location,
 			width: newWidth,
 			height: newHeight

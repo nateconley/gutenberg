@@ -8,16 +8,17 @@ import classnames from 'classnames';
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
+import { addQueryArgs } from '@wordpress/url';
 import { Component } from '@wordpress/element';
 import { Panel } from '@wordpress/components';
 
 /**
  * Internal dependencies.
  */
-import MetaboxPanel from './panel.js';
+import MetaBoxPanel from './panel.js';
 
 // @TODO add error handling.
-class MetaboxIframe extends Component {
+class MetaBoxIframe extends Component {
 	constructor() {
 		super( ...arguments );
 
@@ -32,13 +33,13 @@ class MetaboxIframe extends Component {
 		this.formData = [];
 		this.form = null;
 
-		this.isSaving = this.isSaving.bind( this );
 		this.checkMessageForResize = this.checkMessageForResize.bind( this );
 		this.handleDoubleBuffering = this.handleDoubleBuffering.bind( this );
-		this.handleMetaboxReload = this.handleMetaboxReload.bind( this );
-		this.checkMetaboxState = this.checkMetaboxState.bind( this );
+		this.handleMetaBoxReload = this.handleMetaBoxReload.bind( this );
+		this.checkMetaBoxState = this.checkMetaBoxState.bind( this );
 		this.observeChanges = this.observeChanges.bind( this );
 		this.bindNode = this.bindNode.bind( this );
+		this.isSaving = this.isSaving.bind( this );
 		this.toggle = this.toggle.bind( this );
 	}
 
@@ -55,22 +56,23 @@ class MetaboxIframe extends Component {
 	componentDidMount() {
 		/**
 		 * Sets up an event listener for resizing. The resizing occurs inside
-		 * the iframe, see gutenberg/assets/js/metabox.js
+		 * the iframe, see gutenberg/assets/js/meta-box-resize.js
 		 */
 		window.addEventListener( 'message', this.checkMessageForResize, false );
 
 		// Initially set node to not display anything so that when it loads, we can see it.
 		this.node.style.display = 'none';
+
 		this.node.addEventListener( 'load', this.observeChanges );
 	}
 
 	componentWillReceiveProps( nextProps ) {
-		// Metabox updating.
+		// MetaBox updating.
 		if ( nextProps.isUpdating === true ) {
 			const iframe = this.node;
 
 			this.clonedNode = iframe.cloneNode( true );
-			this.clonedNode.classList.add( 'iframe--updating' );
+			this.clonedNode.classList.add( 'is-updating' );
 			this.hideNode( this.clonedNode );
 			const parent = iframe.parentNode;
 
@@ -85,29 +87,27 @@ class MetaboxIframe extends Component {
 	}
 
 	handleDoubleBuffering() {
-		const { node, clonedNode } = this;
-
-		// The standard post.php form ID post should probably be mimicked.
-		const form = node.contentWindow.document.getElementById( 'post' );
+		const { node, clonedNode, form } = this;
 
 		form.submit();
 
 		const cloneForm = clonedNode.contentWindow.document.getElementById( 'post' );
 
+		// Make the cloned state match the current state visually.
 		cloneForm.parentNode.replaceChild( form, cloneForm );
 
 		this.showNode( clonedNode );
 		this.hideNode( node );
 
-		node.addEventListener( 'load', this.handleMetaboxReload );
+		node.addEventListener( 'load', this.handleMetaBoxReload );
 	}
 
 	hideNode( node ) {
-		node.classList.add( 'iframe--hidden' );
+		node.classList.add( 'is-hidden' );
 	}
 
 	showNode( node ) {
-		node.classList.remove( 'iframe--hidden' );
+		node.classList.remove( 'is-hidden' );
 	}
 
 	componentWillUnmount() {
@@ -119,8 +119,8 @@ class MetaboxIframe extends Component {
 		}
 
 		if ( this.form !== null ) {
-			this.form.removeEventListener( 'input', this.checkMetaboxState );
-			this.form.removeEventListener( 'change', this.checkMetaboxState );
+			this.form.removeEventListener( 'input', this.checkMetaBoxState );
+			this.form.removeEventListener( 'change', this.checkMetaBoxState );
 		}
 
 		this.node.removeEventListener( 'load', this.observeChanges );
@@ -129,17 +129,18 @@ class MetaboxIframe extends Component {
 	observeChanges() {
 		const node = this.node;
 
+		// The standard post.php form ID post should probably be mimicked.
+		this.form = this.node.contentWindow.document.getElementById( 'post' );
+
 		// If the iframe has not already loaded before.
 		if ( this.hasLoaded === false ) {
 			node.style.display = 'block';
-			this.originalFormData = this.getFormData( node );
+			this.originalFormData = this.getFormData();
 			this.hasLoaded = true;
 		}
 
-		this.form = node.contentWindow.document.getElementById( 'post' );
-
 		// Add event listeners to handle dirty checking.
-		this.dirtyObserver = new window.MutationObserver( this.checkMetaboxState );
+		this.dirtyObserver = new window.MutationObserver( this.checkMetaBoxState );
 		this.dirtyObserver.observe( this.form, {
 			attributes: true,
 			attributeOldValue: true,
@@ -148,35 +149,35 @@ class MetaboxIframe extends Component {
 			childList: true,
 			subtree: true,
 		} );
-		this.form.addEventListener( 'change', this.checkMetaboxState );
-		this.form.addEventListener( 'input', this.checkMetaboxState );
+		this.form.addEventListener( 'change', this.checkMetaBoxState );
+		this.form.addEventListener( 'input', this.checkMetaBoxState );
 	}
 
-	getFormData( node ) {
-		const form = node.contentWindow.document.getElementById( 'post' );
+	getFormData() {
+		const form = this.form;
 
 		const data = new window.FormData( form );
 		const entries = Array.from( data.entries() );
 		return entries;
 	}
 
-	checkMetaboxState() {
-		const { isUpdating, isDirty, changedMetaboxState, location } = this.props;
+	checkMetaBoxState() {
+		const { isUpdating, isDirty, changedMetaBoxState, location } = this.props;
 
-		const isStateEqual = isEqual( this.originalFormData, this.getFormData( this.node ) );
+		const isStateEqual = isEqual( this.originalFormData, this.getFormData() );
 
 		/**
 		 * If we are not updating, then if dirty and equal to original, then set not dirty.
 		 * If we are not updating, then if not dirty and not equal to original, set as dirty.
 		 */
 		if ( ! isUpdating && ( isDirty === isStateEqual ) ) {
-			changedMetaboxState( location, ! isDirty );
+			changedMetaBoxState( location, ! isDirty );
 		}
 	}
 
-	handleMetaboxReload( event ) {
-		// Remove the reloading event listener once the metabox has loaded.
-		event.target.removeEventListener( 'load', this.handleMetaboxReload );
+	handleMetaBoxReload( event ) {
+		// Remove the reloading event listener once the meta box has loaded.
+		event.target.removeEventListener( 'load', this.handleMetaBoxReload );
 
 		if ( this.clonedNode ) {
 			this.showNode( this.node );
@@ -186,8 +187,8 @@ class MetaboxIframe extends Component {
 			delete this.clonedNode;
 		}
 
-		this.originalFormData = this.getFormData( this.node );
-		this.props.metaboxReloaded( this.props.location );
+		this.originalFormData = this.getFormData();
+		this.props.metaBoxReloaded( this.props.location );
 	}
 
 	checkMessageForResize( event ) {
@@ -201,7 +202,8 @@ class MetaboxIframe extends Component {
 			} catch ( e ) {} // eslint-disable-line no-empty
 		}
 
-		if ( data.source !== 'metabox' || data.location !== this.props.location ) {
+		// Check to make sure the meta box matches this location.
+		if ( data.source !== 'meta-box' || data.location !== this.props.location ) {
 			return;
 		}
 
@@ -226,46 +228,45 @@ class MetaboxIframe extends Component {
 	}
 
 	render() {
-		const { location, className, id } = this.props;
+		const { location } = this.props;
 		const { isOpen } = this.state;
 		const isSaving = this.isSaving();
 
 		const classes = classnames(
-			className,
-			{ closed: ! isOpen }
+			'editor-meta-box-iframe',
+			location,
+			{ 'is-closed': ! isOpen }
 		);
 
 		const overlayClasses = classnames(
-			'loading-overlay',
-			{ visible: isSaving }
+			'editor-meta-boxes__loading-overlay',
+			{ 'is-visible': isSaving }
 		);
 
-		const iframeClasses = classnames( { 'iframe--updating': isSaving } );
+		const iframeClasses = classnames( { 'is-updating': isSaving } );
 
 		return (
 			<Panel className="editor-meta-boxes">
-				<MetaboxPanel
-					title={ __( 'Extended Settings', 'gutenberg' ) }
+				<MetaBoxPanel
+					title={ __( 'Extended Settings' ) }
 					opened={ isOpen }
 					onToggle={ this.toggle }>
-					<div id="iframe-container" className={ classes }>
+					<div className={ classes }>
 						<div className={ overlayClasses }>
-							<p className="loading-overlay__text">{ __( 'Updating Settings', 'gutenberg' ) }</p>
+							<p className="loading-overlay__text">{ __( 'Updating Settings' ) }</p>
 						</div>
 						<iframe
 							className={ iframeClasses }
 							ref={ this.bindNode }
-							title={ __( 'Extended Settings', 'gutenberg' ) }
-							key="metabox"
-							id={ id }
-							src={ `${ window._wpMetaboxUrl }&metabox=${ location }` }
+							title={ __( 'Extended Settings' ) }
+							src={ addQueryArgs( window._wpMetaBoxUrl, { meta_box: location } ) }
 							width={ Math.ceil( this.state.width ) }
 							height={ Math.ceil( this.state.height ) } />
 					</div>
-				</MetaboxPanel>
+				</MetaBoxPanel>
 			</Panel>
 		);
 	}
 }
 
-export default MetaboxIframe;
+export default MetaBoxIframe;

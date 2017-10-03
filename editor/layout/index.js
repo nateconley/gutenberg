@@ -21,7 +21,7 @@ import UnsavedChangesWarning from '../unsaved-changes-warning';
 import DocumentTitle from '../document-title';
 import AutosaveMonitor from '../autosave-monitor';
 import { removeNotice } from '../actions';
-import Metabox from '../metaboxes';
+import MetaBoxes from '../meta-boxes';
 import {
 	getEditorMode,
 	isEditorSidebarOpened,
@@ -33,7 +33,7 @@ function Layout( { mode, isSidebarOpened, notices, ...props } ) {
 		'is-sidebar-opened': isSidebarOpened,
 	} );
 
-	return [
+	return (
 		<div key="editor" className={ className }>
 			<DocumentTitle />
 			<NoticeList onRemove={ props.removeNotice } notices={ notices } />
@@ -45,11 +45,11 @@ function Layout( { mode, isSidebarOpened, notices, ...props } ) {
 					{ mode === 'text' && <TextEditor /> }
 					{ mode === 'visual' && <VisualEditor /> }
 				</div>
-				<Metabox key="metaboxes" location="normal" isSidebarOpened={ isSidebarOpened } />
+				<MetaBoxes location="normal" />
 			</div>
 			{ isSidebarOpened && <Sidebar /> }
-		</div>,
-	];
+		</div>
+	);
 }
 
 export default connect(

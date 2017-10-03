@@ -3,7 +3,7 @@
  */
 
 /* Hides scrollbar to make iframe content seem as though it is part of the page. */
-.gutenberg-metabox-html {
+.gutenberg-meta-box-html {
 	overflow: hidden;
 	width: 100%;
 
@@ -11,13 +11,13 @@
 		background-color: $white;
 	}
 
-	/* Match width and positioning of the metaboxes. Override default styles. */
+	/* Match width and positioning of the meta boxes. Override default styles. */
 	#poststuff {
 		margin: 0 auto;
 		padding-top: 0;
 	}
 
-	/* Override Default metabox stylings */
+	/* Override Default meta box stylings */
 
 	#poststuff h3.hndle,
 	#poststuff .stuffbox > h3,
@@ -45,6 +45,10 @@
 		margin: 0;
 	}
 
+	input {
+		max-width: 300px;
+	}
+
 	input[type="text"],
 	input[type="password"],
 	input[type="checkbox"],
@@ -65,8 +69,6 @@
 	select,
 	textarea {
 		display: inline-block;
-		width: auto;
-		max-width: 100%;
 		padding: 0;
 		line-height: 24px;
 		background: inherit;

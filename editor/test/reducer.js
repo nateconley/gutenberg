@@ -24,7 +24,7 @@ import {
 	notices,
 	showInsertionPoint,
 	userData,
-	legacyMetaboxes,
+	legacyMetaBoxes,
 } from '../reducer';
 
 describe( 'state', () => {
@@ -970,9 +970,9 @@ describe( 'state', () => {
 		} );
 	} );
 
-	describe( 'legacyMetaboxes()', () => {
+	describe( 'legacyMetaBoxes()', () => {
 		it( 'should return default state', () => {
-			const actual = legacyMetaboxes( undefined, {} );
+			const actual = legacyMetaBoxes( undefined, {} );
 			const expected = {
 				advanced: {
 					isActive: false,
@@ -994,18 +994,18 @@ describe( 'state', () => {
 			expect( actual ).toEqual( expected );
 		} );
 		it( 'should set the sidebar to active', () => {
-			const metaboxes = {
+			const metaBoxes = {
 				normal: false,
 				advanced: false,
 				side: true,
 			};
 
 			const action = {
-				type: 'INITIALIZE_METABOX_STATE',
-				metaboxes,
+				type: 'INITIALIZE_META_BOX_STATE',
+				metaBoxes,
 			};
 
-			const actual = legacyMetaboxes( undefined, action );
+			const actual = legacyMetaBoxes( undefined, action );
 			const expected = {
 				advanced: {
 					isActive: false,
@@ -1028,12 +1028,12 @@ describe( 'state', () => {
 		} );
 		it( 'should switch updating to off', () => {
 			const action = {
-				type: 'HANDLE_METABOX_RELOAD',
+				type: 'HANDLE_META_BOX_RELOAD',
 				location: 'normal',
 			};
 
-			const metaboxes = legacyMetaboxes( { normal: { isUpdating: true, isActive: false, isDirty: true } }, action );
-			const actual = metaboxes.normal;
+			const metaBoxes = legacyMetaBoxes( { normal: { isUpdating: true, isActive: false, isDirty: true } }, action );
+			const actual = metaBoxes.normal;
 			const expected = {
 				isActive: false,
 				isUpdating: false,
@@ -1044,12 +1044,12 @@ describe( 'state', () => {
 		} );
 		it( 'should switch updating to on', () => {
 			const action = {
-				type: 'REQUEST_METABOX_UPDATE',
+				type: 'REQUEST_META_BOX_UPDATE',
 				location: 'normal',
 			};
 
-			const metaboxes = legacyMetaboxes( undefined, action );
-			const actual = metaboxes.normal;
+			const metaBoxes = legacyMetaBoxes( undefined, action );
+			const actual = metaBoxes.normal;
 			const expected = {
 				isActive: false,
 				isUpdating: true,
@@ -1060,12 +1060,12 @@ describe( 'state', () => {
 		} );
 		it( 'should return with the isDirty flag as true', () => {
 			const action = {
-				type: 'METABOX_STATE_CHANGED',
+				type: 'META_BOX_STATE_CHANGED',
 				location: 'normal',
 				hasChanged: true,
 			};
-			const metaboxes = legacyMetaboxes( undefined, action );
-			const actual = metaboxes.normal;
+			const metaBoxes = legacyMetaBoxes( undefined, action );
+			const actual = metaBoxes.normal;
 			const expected = {
 				isActive: false,
 				isDirty: true,

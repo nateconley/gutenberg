@@ -25,12 +25,12 @@ import {
 	removeNotice,
 	savePost,
 	editPost,
-	requestMetaboxUpdate,
+	requestMetaBoxUpdate,
 } from './actions';
 import {
 	getCurrentPost,
 	getCurrentPostType,
-	getDirtyMetaboxes,
+	getDirtyMetaBoxes,
 	getEditedPostContent,
 	getPostEdits,
 	isCurrentPostPublished,
@@ -115,9 +115,9 @@ export default {
 			) );
 		}
 
-		// Update dirty metaboxes.
-		const metaboxes = getDirtyMetaboxes( getState() );
-		metaboxes.forEach( metabox => dispatch( requestMetaboxUpdate( metabox ) ) );
+		// Update dirty meta boxes.
+		const metaBoxes = getDirtyMetaBoxes( getState() );
+		metaBoxes.forEach( metaBox => dispatch( requestMetaBoxUpdate( metaBox ) ) );
 
 		if ( get( window.history.state, 'id' ) !== post.id ) {
 			window.history.replaceState(
