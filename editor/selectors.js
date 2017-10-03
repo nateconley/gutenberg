@@ -32,64 +32,58 @@ export function getEditorMode( state ) {
 }
 
 /**
- * Returns the state of legacy metaboxes.
+ * Returns the state of legacy meta boxes.
  *
  * @param  {Object}  state Global application state
- * @return {Object}        State of metaboxes
+ * @return {Object}        State of meta boxes
  */
-export function getMetaboxes( state ) {
-	return state.legacyMetaboxes;
+export function getMetaBoxes( state ) {
+	return state.legacyMetaBoxes;
 }
 
 /**
- * Returns the state of legacy metaboxes.
+ * Returns the state of legacy meta boxes.
  *
  * @param  {Object}  state    Global application state
- * @param  {String}  location Location of the metabox.
- * @return {Object}        State of metabox at specified location.
+ * @param  {String}  location Location of the meta box.
+ * @return {Object}        State of meta box at specified location.
  */
-export function getMetabox( state, location ) {
-	return getMetaboxes( state )[ location ];
+export function getMetaBox( state, location ) {
+	return getMetaBoxes( state )[ location ];
 }
 
 /**
- * Returns a list of dirty metabox locations.
+ * Returns a list of dirty meta box locations.
  *
  * @param  {Object}  state Global application state
- * @return {Array}        Array of locations for dirty metaboxes.
+ * @return {Array}        Array of locations for dirty meta boxes.
  */
-export const getDirtyMetaboxes = createSelector(
+export const getDirtyMetaBoxes = createSelector(
 	( state ) => {
-		const dirtyMetaboxes = [];
-		const metaboxes = state.legacyMetaboxes;
+		const dirtyMetaBoxes = [];
+		const metaBoxes = state.legacyMetaBoxes;
 
-		for ( const location in metaboxes ) {
-			if ( metaboxes[ location ].isDirty === true && metaboxes[ location ].isActive === true ) {
-				dirtyMetaboxes.push( location );
+		for ( const location in metaBoxes ) {
+			if ( metaBoxes[ location ].isDirty === true && metaBoxes[ location ].isActive === true ) {
+				dirtyMetaBoxes.push( location );
 			}
 		}
 
-		return dirtyMetaboxes;
+		return dirtyMetaBoxes;
 	},
-	( state ) => state.legacyMetaboxes,
+	( state ) => state.legacyMetaBoxes,
 );
 
 /**
- * Returns the dirty state of legacy metaboxes.
+ * Returns the dirty state of legacy meta boxes.
  *
- * Checks whether the entire metabox state is dirty. So if a sidebar is dirty,
+ * Checks whether the entire meta box state is dirty. So if a sidebar is dirty,
  * but a normal area is not dirty, this will overall return dirty.
  *
  * @param  {Object}  state Global application state
  * @return {Boolean}       Whether state is dirty. True if dirty, false if not.
  */
-export const isMetaboxStateDirty = createSelector(
-	( state ) => {
-		// If there is more than one dirty metabox.
-		return getDirtyMetaboxes( state ).length > 0;
-	},
-	( state ) => state.legacyMetaboxes,
-);
+export const isMetaBoxStateDirty = ( state ) => getDirtyMetaBoxes( state ).length > 0;
 
 /**
  * Returns the current active panel for the sidebar.
@@ -197,7 +191,7 @@ export const isEditedPostDirty = createSelector(
 			return true;
 		}
 
-		if ( isMetaboxStateDirty( state ) === true ) {
+		if ( isMetaBoxStateDirty( state ) ) {
 			return true;
 		}
 
@@ -225,7 +219,7 @@ export const isEditedPostDirty = createSelector(
 	( state ) => [
 		state.editor,
 		state.currentPost,
-		state.legacyMetaboxes,
+		state.legacyMetaBoxes,
 	]
 );
 
