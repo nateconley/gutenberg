@@ -19,6 +19,8 @@ import msListConverter from './ms-list-converter';
 import listMerger from './list-merger';
 import imageCorrector from './image-corrector';
 import blockquoteNormaliser from './blockquote-normaliser';
+import tableNormaliser from './table-normaliser';
+import inlineContentConverter from './inline-content-converter';
 import { deepFilter, isInvalidInline, isNotWhitelisted, isPlain, isInline } from './utils';
 import showdown from 'showdown';
 
@@ -34,6 +36,7 @@ export default function( { HTML, plainText, inline } ) {
 		const converter = new showdown.Converter();
 
 		converter.setOption( 'noHeaderId', true );
+		converter.setOption( 'tables', true );
 
 		HTML = converter.makeHtml( plainText );
 	} else {
@@ -52,6 +55,8 @@ export default function( { HTML, plainText, inline } ) {
 		commentRemover,
 		createUnwrapper( ( node ) => isNotWhitelisted( node ) || ( inline && ! isInline( node ) ) ),
 		blockquoteNormaliser,
+		tableNormaliser,
+		inlineContentConverter,
 	] );
 
 	// Inline paste.

@@ -7,7 +7,7 @@ import { equal } from 'assert';
  * Internal dependencies
  */
 import createUnwrapper from '../create-unwrapper';
-import { deepFilter, isEmpty, isInvalidInline } from '../utils';
+import { deepFilter, isEmpty, isInvalidInline, isPlain } from '../utils';
 
 const spanUnwrapper = createUnwrapper( ( node ) => node.nodeName === 'SPAN' );
 const inlineUnwrapper = createUnwrapper( ( node ) => node.nodeName === 'EM' );
@@ -76,5 +76,19 @@ describe( 'isInvalidInline', () => {
 
 	it( 'should return false for valid structure', () => {
 		equal( isInvalidInlineHTML( '<em>test</em>' ), false );
+	} );
+} );
+
+describe( 'isPlain', () => {
+	it( 'should return true for plain text', () => {
+		equal( isPlain( 'test' ), true );
+	} );
+
+	it( 'should return true for only line breaks', () => {
+		equal( isPlain( 'test<br>test' ), true );
+	} );
+
+	it( 'should return false for formatted text', () => {
+		equal( isPlain( '<strong>test</strong>' ), false );
 	} );
 } );

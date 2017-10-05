@@ -10,8 +10,12 @@ import createUnwrapper from '../create-unwrapper';
 import { deepFilter } from '../utils';
 
 const unwrapper = createUnwrapper( ( node ) => node.nodeName === 'SPAN' );
+const unwrapperWithAfter = createUnwrapper(
+	( node ) => node.nodeName === 'P',
+	() => document.createElement( 'BR' )
+);
 
-describe( 'stripWrappers', () => {
+describe( 'createUnwrapper', () => {
 	it( 'should remove spans', () => {
 		equal( deepFilter( '<span>test</span>', [ unwrapper ] ), 'test' );
 	} );
@@ -30,5 +34,9 @@ describe( 'stripWrappers', () => {
 
 	it( 'should remove spans, but preserve nested structure', () => {
 		equal( deepFilter( '<p><span><em>test</em> <em>test</em></span></p>', [ unwrapper ] ), '<p><em>test</em> <em>test</em></p>' );
+	} );
+
+	it( 'should remove paragraphs and insert line break', () => {
+		equal( deepFilter( '<p>test</p>', [ unwrapperWithAfter ] ), 'test<br>' );
 	} );
 } );

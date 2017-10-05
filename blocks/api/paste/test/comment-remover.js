@@ -9,7 +9,7 @@ import { equal } from 'assert';
 import commentRemover from '../comment-remover';
 import { deepFilter } from '../utils';
 
-describe( 'stripWrappers', () => {
+describe( 'commentRemover', () => {
 	it( 'should remove comments', () => {
 		equal( deepFilter( '<!-- test -->', [ commentRemover ] ), '' );
 	} );
