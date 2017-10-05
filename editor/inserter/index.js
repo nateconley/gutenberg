@@ -1,6 +1,7 @@
 /**
  * External dependencies
  */
+import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 
 /**
@@ -16,7 +17,12 @@ import { createBlock } from '@wordpress/blocks';
  */
 import InserterMenu from './menu';
 import { getBlockInsertionPoint, getEditorMode } from '../selectors';
-import { insertBlock, hideInsertionPoint } from '../actions';
+import {
+	insertBlock,
+	setBlockInsertionPoint,
+	clearBlockInsertionPoint,
+	hideInsertionPoint,
+} from '../actions';
 
 class Inserter extends Component {
 	constructor() {
@@ -31,6 +37,27 @@ class Inserter extends Component {
 		this.state = {
 			opened: false,
 		};
+	}
+
+	componentWillUpdate( nextProps, nextState ) {
+		const { insertIndex, setInsertionPoint, clearInsertionPoint } = nextProps;
+		const { opened } = nextState;
+		if (
+			( this.state.opened !== opened || this.props.insertIndex !== insertIndex ) &&
+			Number.isInteger( insertIndex )
+		) {
+			if ( opened ) {
+				setInsertionPoint( insertIndex );
+			} else {
+				clearInsertionPoint();
+			}
+		}
+	}
+
+	componentWillUnmount() {
+		if ( this.state.opened ) {
+			this.props.clearInsertionPoint();
+		}
 	}
 
 	toggle() {
@@ -113,5 +140,9 @@ export default connect(
 				position
 			) );
 		},
+		...bindActionCreators( {
+			setInsertionPoint: setBlockInsertionPoint,
+			clearInsertionPoint: clearBlockInsertionPoint,
+		}, dispatch ),
 	} )
 )( Inserter );

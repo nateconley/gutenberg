@@ -26,6 +26,7 @@ import BlockDropZone from './block-drop-zone';
 import BlockMover from '../../block-mover';
 import BlockRightMenu from '../../block-settings-menu';
 import BlockSwitcher from '../../block-switcher';
+import Inserter from '../../inserter';
 import {
 	clearSelectedBlock,
 	editPost,
@@ -52,6 +53,7 @@ import {
 	isBlockSelected,
 	isFirstMultiSelectedBlock,
 	isTyping,
+	isInsertingSiblingBlock,
 } from '../../selectors';
 
 const { BACKSPACE, ESCAPE, DELETE, ENTER } = keycodes;
@@ -69,6 +71,7 @@ class VisualEditorBlock extends Component {
 		this.setAttributes = this.setAttributes.bind( this );
 		this.maybeHover = this.maybeHover.bind( this );
 		this.maybeStartTyping = this.maybeStartTyping.bind( this );
+		this.mouseLeaveUnlessInserting = this.mouseLeaveUnlessInserting.bind( this );
 		this.stopTypingOnMouseMove = this.stopTypingOnMouseMove.bind( this );
 		this.removeOrDeselect = this.removeOrDeselect.bind( this );
 		this.mergeBlocks = this.mergeBlocks.bind( this );
@@ -167,9 +170,9 @@ class VisualEditorBlock extends Component {
 	}
 
 	maybeHover() {
-		const { isHovered, isSelected, isMultiSelected, onHover } = this.props;
+		const { isHovered, isSelected, isMultiSelected, isInserterOpen, onHover } = this.props;
 
-		if ( isHovered || isSelected || isMultiSelected ) {
+		if ( isHovered || isSelected || isMultiSelected || isInserterOpen ) {
 			return;
 		}
 
@@ -184,6 +187,12 @@ class VisualEditorBlock extends Component {
 		//    shifted to the newly created block)
 		if ( ! this.props.isTyping && this.props.isSelected ) {
 			this.props.onStartTyping();
+		}
+	}
+
+	mouseLeaveUnlessInserting() {
+		if ( ! this.props.isInserterOpen ) {
+			this.props.onMouseLeave();
 		}
 	}
 
@@ -294,7 +303,7 @@ class VisualEditorBlock extends Component {
 	}
 
 	render() {
-		const { block, multiSelectedBlockUids, order } = this.props;
+		const { block, multiSelectedBlockUids, order, nextBlock } = this.props;
 		const { name: blockName, isValid } = block;
 		const blockType = getBlockType( blockName );
 		// translators: %s: Type of block (i.e. Text, Image etc)
@@ -327,7 +336,7 @@ class VisualEditorBlock extends Component {
 			'is-showing-mobile-controls': showMobileControls,
 		} );
 
-		const { onMouseLeave, onFocus, onReplace } = this.props;
+		const { onFocus, onReplace } = this.props;
 
 		// Determine whether the block has props to apply to the wrapper.
 		let wrapperProps;
@@ -348,7 +357,7 @@ class VisualEditorBlock extends Component {
 				onFocus={ this.onFocus }
 				onMouseMove={ this.maybeHover }
 				onMouseEnter={ this.maybeHover }
-				onMouseLeave={ onMouseLeave }
+				onMouseLeave={ this.mouseLeaveUnlessInserting }
 				className={ wrapperClassname }
 				data-type={ block.name }
 				tabIndex="0"
@@ -424,6 +433,9 @@ class VisualEditorBlock extends Component {
 						}
 					</BlockCrashBoundary>
 				</div>
+				{ ( showUI || isHovered ) && !! nextBlock && (
+					<Inserter insertIndex={ order + 1 } />
+				) }
 				{ !! error && <BlockCrashWarning /> }
 			</div>
 		);
@@ -446,6 +458,7 @@ export default connect(
 			order: getBlockIndex( state, ownProps.uid ),
 			multiSelectedBlockUids: getMultiSelectedBlockUids( state ),
 			meta: getEditedPostAttribute( state, 'meta' ),
+			isInserterOpen: isInsertingSiblingBlock( state ),
 		};
 	},
 	( dispatch, ownProps ) => ( {
