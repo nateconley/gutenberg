@@ -9,13 +9,13 @@ import { createMediaFromFile } from '@wordpress/utils';
  */
 import './style.scss';
 import './editor.scss';
-import { registerBlockType, source, createBlock } from '../../api';
+import { registerBlockType, createBlock, getBlockAttributes, getBlockType } from '../../api';
 import ImageBlock from './block';
-
-const { attr, children } = source;
 
 registerBlockType( 'core/image', {
 	title: __( 'Image' ),
+
+	description: __( 'Worth a thousand words.' ),
 
 	icon: 'format-image',
 
@@ -26,19 +26,26 @@ registerBlockType( 'core/image', {
 	attributes: {
 		url: {
 			type: 'string',
-			source: attr( 'img', 'src' ),
+			source: 'attribute',
+			selector: 'img',
+			attribute: 'src',
 		},
 		alt: {
 			type: 'string',
-			source: attr( 'img', 'alt' ),
+			source: 'attribute',
+			selector: 'img',
+			attribute: 'alt',
 		},
 		caption: {
 			type: 'array',
-			source: children( 'figcaption' ),
+			source: 'children',
+			selector: 'figcaption',
 		},
 		href: {
 			type: 'string',
-			source: attr( 'a', 'href' ),
+			source: 'attribute',
+			selector: 'a',
+			attribute: 'href',
 		},
 		id: {
 			type: 'number',
@@ -58,12 +65,21 @@ registerBlockType( 'core/image', {
 		from: [
 			{
 				type: 'raw',
-				isMatch: ( node ) => {
+				isMatch( node ) {
 					const tag = node.nodeName.toLowerCase();
 					const hasText = !! node.textContent.trim();
 					const hasImage = node.querySelector( 'img' );
 
 					return tag === 'img' || ( hasImage && ! hasText ) || ( hasImage && tag === 'figure' );
+				},
+				transform( node ) {
+					const targetNode = node.parentNode.querySelector( 'figure,img' );
+					const matches = /align(left|center|right)/.exec( targetNode.className );
+					const align = matches ? matches[ 1 ] : undefined;
+					const blockType = getBlockType( 'core/image' );
+					const attributes = getBlockAttributes( blockType, targetNode.outerHTML, { align } );
+
+					return createBlock( 'core/image', attributes );
 				},
 			},
 			{
@@ -77,6 +93,51 @@ registerBlockType( 'core/image', {
 							id: media.id,
 							url: media.source_url,
 						} ) );
+				},
+			},
+			{
+				type: 'shortcode',
+				tag: 'caption',
+				attributes: {
+					url: {
+						type: 'string',
+						source: 'attribute',
+						attribute: 'src',
+						selector: 'img',
+					},
+					alt: {
+						type: 'string',
+						source: 'attribute',
+						attribute: 'alt',
+						selector: 'img',
+					},
+					caption: {
+						type: 'array',
+						// To do: needs to support HTML.
+						source: 'text',
+					},
+					href: {
+						type: 'string',
+						source: 'attribute',
+						attribute: 'href',
+						selector: 'a',
+					},
+					id: {
+						type: 'number',
+						shortcode: ( { named: { id } } ) => {
+							if ( ! id ) {
+								return;
+							}
+
+							return parseInt( id.replace( 'attachment_', '' ), 10 );
+						},
+					},
+					align: {
+						type: 'string',
+						shortcode: ( { named: { align = 'alignnone' } } ) => {
+							return align.replace( 'align', '' );
+						},
+					},
 				},
 			},
 		],

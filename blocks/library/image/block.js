@@ -2,21 +2,20 @@
  * External dependencies
  */
 import classnames from 'classnames';
-import ResizableBox from 'react-resizable-box';
+import ResizableBox from 're-resizable';
 import {
 	startCase,
 	isEmpty,
 	map,
 	get,
-	flowRight,
 } from 'lodash';
 
 /**
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Component } from '@wordpress/element';
-import { mediaUpload } from '@wordpress/utils';
+import { Component, compose } from '@wordpress/element';
+import { mediaUpload, createMediaFromFile, getBlobByURL, revokeBlobURL, viewPort } from '@wordpress/utils';
 import {
 	Placeholder,
 	Dashicon,
@@ -24,12 +23,12 @@ import {
 	DropZone,
 	FormFileUpload,
 	withAPIData,
+	withContext,
 } from '@wordpress/components';
 
 /**
  * Internal dependencies
  */
-import withEditorSettings from '../../with-editor-settings';
 import Editable from '../../editable';
 import MediaUploadButton from '../../media-upload-button';
 import InspectorControls from '../../inspector-controls';
@@ -37,9 +36,13 @@ import TextControl from '../../inspector-controls/text-control';
 import SelectControl from '../../inspector-controls/select-control';
 import BlockControls from '../../block-controls';
 import BlockAlignmentToolbar from '../../block-alignment-toolbar';
-import BlockDescription from '../../block-description';
 import UrlInputButton from '../../url-input/button';
 import ImageSize from './image-size';
+
+/**
+ * Module constants
+ */
+const MIN_SIZE = 20;
 
 class ImageBlock extends Component {
 	constructor() {
@@ -51,8 +54,37 @@ class ImageBlock extends Component {
 		this.updateImageURL = this.updateImageURL.bind( this );
 	}
 
+	componentDidMount() {
+		const { attributes, setAttributes } = this.props;
+		const { id, url = '' } = attributes;
+
+		if ( ! id && url.indexOf( 'blob:' ) === 0 ) {
+			getBlobByURL( url )
+				.then( createMediaFromFile )
+				.then( ( media ) => {
+					setAttributes( {
+						id: media.id,
+						url: media.source_url,
+					} );
+				} );
+		}
+	}
+
+	componentDidUpdate( prevProps ) {
+		const { id: prevID, url: prevUrl = '' } = prevProps.attributes;
+		const { id, url = '' } = this.props.attributes;
+
+		if ( ! prevID && prevUrl.indexOf( 'blob:' ) === 0 && id && url.indexOf( 'blob:' ) === -1 ) {
+			revokeBlobURL( url );
+		}
+	}
+
 	onSelectImage( media ) {
-		this.props.setAttributes( { url: media.url, alt: media.alt, caption: media.caption, id: media.id } );
+		const attributes = { url: media.url, alt: media.alt, id: media.id };
+		if ( media.caption ) {
+			attributes.caption = [ media.caption ];
+		}
+		this.props.setAttributes( attributes );
 	}
 
 	onSetHref( value ) {
@@ -64,9 +96,9 @@ class ImageBlock extends Component {
 	}
 
 	updateAlignment( nextAlign ) {
-		const extraUpdatedAttributes = [ 'wide', 'full' ].indexOf( nextAlign ) !== -1
-			? { width: undefined, height: undefined }
-			: {};
+		const extraUpdatedAttributes = [ 'wide', 'full' ].indexOf( nextAlign ) !== -1 ?
+			{ width: undefined, height: undefined } :
+			{};
 		this.props.setAttributes( { ...extraUpdatedAttributes, align: nextAlign } );
 	}
 
@@ -79,16 +111,17 @@ class ImageBlock extends Component {
 	}
 
 	render() {
-		const { attributes, setAttributes, focus, setFocus, className, settings } = this.props;
+		const { attributes, setAttributes, focus, setFocus, className, settings, toggleSelection } = this.props;
 		const { url, alt, caption, align, id, href, width, height } = attributes;
 
 		const availableSizes = this.getAvailableSizes();
 		const figureStyle = width ? { width } : {};
-		const isResizable = [ 'wide', 'full' ].indexOf( align ) === -1;
+		const isResizable = [ 'wide', 'full' ].indexOf( align ) === -1 && ( ! viewPort.isExtraSmall() );
 		const uploadButtonProps = { isLarge: true };
 		const uploadFromFiles = ( event ) => mediaUpload( event.target.files, setAttributes );
 		const dropFiles = ( files ) => mediaUpload( files, setAttributes );
 
+		const editButtonLabel = __( 'Edit image' );
 		const controls = (
 			focus && (
 				<BlockControls key="controls">
@@ -98,19 +131,18 @@ class ImageBlock extends Component {
 					/>
 
 					<Toolbar>
-						<li>
-							<MediaUploadButton
-								buttonProps={ {
-									className: 'components-icon-button components-toolbar__control',
-									'aria-label': __( 'Edit image' ),
-								} }
-								onSelect={ this.onSelectImage }
-								type="image"
-								value={ id }
-							>
-								<Dashicon icon="edit" />
-							</MediaUploadButton>
-						</li>
+						<MediaUploadButton
+							buttonProps={ {
+								className: 'components-icon-button components-toolbar__control',
+								'aria-label': editButtonLabel,
+							} }
+							onSelect={ this.onSelectImage }
+							type="image"
+							value={ id }
+							tooltip={ editButtonLabel }
+						>
+							<Dashicon icon="edit" />
+						</MediaUploadButton>
 						<UrlInputButton onChange={ this.onSetHref } url={ href } />
 					</Toolbar>
 				</BlockControls>
@@ -162,11 +194,8 @@ class ImageBlock extends Component {
 			controls,
 			focus && (
 				<InspectorControls key="inspector">
-					<BlockDescription>
-						<p>{ __( 'Worth a thousand words.' ) }</p>
-					</BlockDescription>
-					<h3>{ __( 'Image Settings' ) }</h3>
-					<TextControl label={ __( 'Alternate Text' ) } value={ alt } onChange={ this.updateAlt } />
+					<h2>{ __( 'Image Settings' ) }</h2>
+					<TextControl label={ __( 'Textual Alternative' ) } value={ alt } onChange={ this.updateAlt } help={ __( 'Describe the purpose of the image. Leave empty if the image is not a key part of the content.' ) } />
 					{ ! isEmpty( availableSizes ) && (
 						<SelectControl
 							label={ __( 'Size' ) }
@@ -189,36 +218,50 @@ class ImageBlock extends Component {
 							imageWidth,
 							imageHeight,
 						} = sizes;
-						const currentWidth = width || imageWidthWithinContainer;
-						const currentHeight = height || imageHeightWithinContainer;
+
+						// Disable reason: Image itself is not meant to be
+						// interactive, but should direct focus to block
+						// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
 						const img = <img src={ url } alt={ alt } onClick={ setFocus } />;
+
 						if ( ! isResizable || ! imageWidthWithinContainer ) {
 							return img;
 						}
+
+						const currentWidth = width || imageWidthWithinContainer;
+						const currentHeight = height || imageHeightWithinContainer;
+
 						const ratio = imageWidth / imageHeight;
-						const minWidth = imageWidth < imageHeight ? 10 : 10 * ratio;
-						const minHeight = imageHeight < imageWidth ? 10 : 10 / ratio;
+						const minWidth = imageWidth < imageHeight ? MIN_SIZE : MIN_SIZE * ratio;
+						const minHeight = imageHeight < imageWidth ? MIN_SIZE : MIN_SIZE / ratio;
+
 						return (
 							<ResizableBox
-								width={ currentWidth }
-								height={ currentHeight }
+								size={ {
+									width: currentWidth,
+									height: currentHeight,
+								} }
 								minWidth={ minWidth }
 								maxWidth={ settings.maxWidth }
 								minHeight={ minHeight }
 								maxHeight={ settings.maxWidth / ratio }
 								lockAspectRatio
-								handlerClasses={ {
+								handleClasses={ {
 									topRight: 'wp-block-image__resize-handler-top-right',
 									bottomRight: 'wp-block-image__resize-handler-bottom-right',
 									topLeft: 'wp-block-image__resize-handler-top-left',
 									bottomLeft: 'wp-block-image__resize-handler-bottom-left',
 								} }
 								enable={ { top: false, right: true, bottom: false, left: false, topRight: true, bottomRight: true, bottomLeft: true, topLeft: true } }
-								onResize={ ( event, direction, elt ) => {
+								onResizeStart={ () => {
+									toggleSelection( false );
+								} }
+								onResizeStop={ ( event, direction, elt, delta ) => {
 									setAttributes( {
-										width: elt.clientWidth,
-										height: elt.clientHeight,
+										width: parseInt( currentWidth + delta.width, 10 ),
+										height: parseInt( currentHeight + delta.height, 10 ),
 									} );
+									toggleSelection( true );
 								} }
 							>
 								{ img }
@@ -243,8 +286,10 @@ class ImageBlock extends Component {
 	}
 }
 
-export default flowRight( [
-	withEditorSettings(),
+export default compose( [
+	withContext( 'editor' )( ( settings ) => {
+		return { settings };
+	} ),
 	withAPIData( ( props ) => {
 		const { id } = props.attributes;
 		if ( ! id ) {

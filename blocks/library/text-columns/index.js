@@ -13,18 +13,17 @@ import { __ } from '@wordpress/i18n';
  */
 import './style.scss';
 import './editor.scss';
-import { registerBlockType, source } from '../../api';
+import { registerBlockType } from '../../api';
 import BlockControls from '../../block-controls';
 import BlockAlignmentToolbar from '../../block-alignment-toolbar';
 import RangeControl from '../../inspector-controls/range-control';
 import Editable from '../../editable';
 import InspectorControls from '../../inspector-controls';
-import BlockDescription from '../../block-description';
-
-const { children, query } = source;
 
 registerBlockType( 'core/text-columns', {
 	title: __( 'Text Columns' ),
+
+	description: __( 'Add text across columns. This block is experimental' ),
 
 	icon: 'columns',
 
@@ -33,7 +32,13 @@ registerBlockType( 'core/text-columns', {
 	attributes: {
 		content: {
 			type: 'array',
-			source: query( 'p', children() ),
+			source: 'query',
+			selector: 'p',
+			query: {
+				children: {
+					source: 'children',
+				},
+			},
 			default: [ [], [] ],
 		},
 		columns: {
@@ -67,9 +72,6 @@ registerBlockType( 'core/text-columns', {
 			),
 			focus && (
 				<InspectorControls key="inspector">
-					<BlockDescription>
-						<p>{ __( 'Add text across columns.' ) }</p>
-					</BlockDescription>
 					<RangeControl
 						label={ __( 'Columns' ) }
 						value={ columns }
@@ -79,17 +81,17 @@ registerBlockType( 'core/text-columns', {
 					/>
 				</InspectorControls>
 			),
-			<section className={ `${ className } align${ width } columns-${ columns }` } key="block">
+			<div className={ `${ className } align${ width } columns-${ columns }` } key="block">
 				{ times( columns, ( index ) =>
 					<div className="wp-block-column" key={ `column-${ index }` }>
 						<Editable
 							tagName="p"
-							value={ content && content[ index ] }
+							value={ content && content[ index ] && content[ index ].children }
 							onChange={ ( nextContent ) => {
 								setAttributes( {
 									content: [
 										...content.slice( 0, index ),
-										nextContent,
+										{ children: nextContent },
 										...content.slice( index + 1 ),
 									],
 								} );
@@ -100,20 +102,20 @@ registerBlockType( 'core/text-columns', {
 						/>
 					</div>
 				) }
-			</section>,
+			</div>,
 		];
 	},
 
 	save( { attributes } ) {
 		const { width, content, columns } = attributes;
 		return (
-			<section className={ `align${ width } columns-${ columns }` }>
+			<div className={ `align${ width } columns-${ columns }` }>
 				{ times( columns, ( index ) =>
 					<div className="wp-block-column" key={ `column-${ index }` }>
-						<p>{ content && content[ index ] }</p>
+						<p>{ content && content[ index ].children }</p>
 					</div>
 				) }
-			</section>
+			</div>
 		);
 	},
 } );

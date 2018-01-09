@@ -1,7 +1,6 @@
-.wp-block-audio .components-placeholder__input {
+.wp-block-audio figcaption {
 	margin-top: 0.5em;
-}
-
-.wp-block-audio .button.button-large {
-	margin-top: 0.5em;
+	color: $dark-gray-300;
+	text-align: center;
+	font-size: $default-font-size;
 }

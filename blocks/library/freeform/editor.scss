@@ -1,6 +1,6 @@
-.editor-visual-editor__block[data-type="core/freeform"] .blocks-editable__tinymce {
+.wp-block-freeform.blocks-editable__tinymce {
 	p {
-		line-height: inherit;
+		line-height: $editor-line-height;
 	}
 
 	ul, ol {
@@ -56,11 +56,10 @@
 
 	&.mce-edit-focus {
 		outline: none;
-		margin-top: $item-spacing;
 	}
 
 	a {
-		color: $blue-medium-500;
+		color: $blue-medium-700;
 	}
 
 	&:focus a[data-mce-selected] {
@@ -85,23 +84,26 @@
 	}
 }
 
+// freeform toolbar
 .freeform-toolbar {
-	width: auto;
-	top: $header-height - 1px;
-	z-index: z-index( '.editor-visual-editor__block-controls' );
 	position: sticky;
+	width: auto;
+	top: -1px;	// stack borders
+	margin-top: -$block-controls-height - 16px;
+	border: 1px solid $light-gray-500;
+	z-index: z-index( '.freeform-toolbar' );
+	background-color: $white;
+	min-height: $block-controls-height;
+	margin-bottom: 14px;
 
-	@include break-medium() {
-		top: $item-spacing;
+	@include break-small() {
+		margin-left: - $block-padding - 1px;
+		margin-right: - $block-padding - 1px;
 	}
 }
 
-.freeform-toolbar .mce-tinymce-inline {
-	margin: 0;
-	margin-top: -$block-controls-height - $item-spacing;
-	border: 1px solid $light-gray-500;
-	background-color: $white;
-	box-shadow: $shadow-popover;
+.freeform-toolbar.has-advanced-toolbar {
+	margin-top: -89px;	// pull upwards the classic block toolbar when enabled, height is manually entered
 }
 
 // Overwrite inline styles.
@@ -144,10 +146,6 @@
 
 .freeform-toolbar.has-advanced-toolbar .mce-toolbar-grp .mce-toolbar {
 	display: block;
-}
-
-.freeform-toolbar.has-advanced-toolbar {
-	margin-top: -85px;	/* Pull upwards the classic text toolbar when enabled */
 }
 
 .freeform-toolbar div.mce-btn-group {
@@ -236,10 +234,28 @@
 	}
 }
 
-.mce-tooltip {
-	display: none;
-}
-
 .components-toolbar__control .dashicon {
 	display: block;
+}
+
+
+.mce-widget.mce-tooltip {
+	display: block;
+	opacity: initial;
+
+	.mce-tooltip-inner {
+		padding: 4px 12px;
+		background: $dark-gray-400;
+		border-width: 0;
+		color: white;
+		white-space: nowrap;
+		box-shadow: none;
+		font-size: $default-font-size;
+		border-radius: 0;
+	}
+
+	.mce-tooltip-arrow {
+		border-top-color: $dark-gray-400;
+		border-bottom-color: $dark-gray-400;
+	}
 }

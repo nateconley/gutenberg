@@ -6,24 +6,24 @@
  * WordPress dependencies
  */
 import { __ } from '@wordpress/i18n';
-import { Button, Dashicon, Placeholder, Toolbar } from '@wordpress/components';
+import { Button, IconButton, Placeholder, Toolbar } from '@wordpress/components';
 import { Component } from '@wordpress/element';
 
 /**
  * Internal dependencies
  */
 import './style.scss';
-import { registerBlockType, source } from '../../api';
+import './editor.scss';
+import { registerBlockType } from '../../api';
 import MediaUploadButton from '../../media-upload-button';
+import Editable from '../../editable';
 import BlockControls from '../../block-controls';
 import BlockAlignmentToolbar from '../../block-alignment-toolbar';
-import InspectorControls from '../../inspector-controls';
-import BlockDescription from '../../block-description';
-
-const { attr } = source;
 
 registerBlockType( 'core/audio', {
 	title: __( 'Audio' ),
+
+	description: __( 'The Audio block allows you to embed audio files and play them back using a simple player.' ),
 
 	icon: 'format-audio',
 
@@ -32,10 +32,20 @@ registerBlockType( 'core/audio', {
 	attributes: {
 		src: {
 			type: 'string',
-			source: attr( 'audio', 'src' ),
+			source: 'attribute',
+			selector: 'audio',
+			attribute: 'src',
 		},
 		align: {
 			type: 'string',
+		},
+		caption: {
+			type: 'array',
+			source: 'children',
+			selector: 'figcaption',
+		},
+		id: {
+			type: 'number',
 		},
 	},
 
@@ -58,8 +68,8 @@ registerBlockType( 'core/audio', {
 			};
 		}
 		render() {
-			const { align } = this.props.attributes;
-			const { setAttributes, focus } = this.props;
+			const { align, caption, id } = this.props.attributes;
+			const { setAttributes, focus, setFocus } = this.props;
 			const { editing, className, src } = this.state;
 			const updateAlignment = ( nextAlign ) => setAttributes( { align: nextAlign } );
 			const switchToEditing = () => {
@@ -69,7 +79,7 @@ registerBlockType( 'core/audio', {
 				if ( media && media.url ) {
 					// sets the block's attribure and updates the edit component from the
 					// selected media, then switches off the editing UI
-					setAttributes( { src: media.url } );
+					setAttributes( { src: media.url, id: media.id } );
 					this.setState( { src: media.url, editing: false } );
 				}
 			};
@@ -89,33 +99,21 @@ registerBlockType( 'core/audio', {
 						onChange={ updateAlignment }
 					/>
 					<Toolbar>
-						<li>
-							<Button
-								buttonProps={ {
-									className: 'components-icon-button components-toolbar__control',
-									'aria-label': __( 'Edit audio' ),
-								} }
-								type="audio"
-								onClick={ switchToEditing }
-							>
-								<Dashicon icon="edit" />
-							</Button>
-						</li>
+						<IconButton
+							className="components-icon-button components-toolbar__control"
+							label={ __( 'Edit audio' ) }
+							onClick={ switchToEditing }
+							icon="edit"
+						/>
 					</Toolbar>
 				</BlockControls>
 			);
 
-			const inspectorControls = focus && (
-				<InspectorControls key="inspector">
-					<BlockDescription>
-						<p>{ __( 'The Audio block allows you to embed audio files and play them back using a simple player.' ) }</p>
-					</BlockDescription>
-				</InspectorControls>
-			);
+			const focusCaption = ( focusValue ) => setFocus( { editable: 'caption', ...focusValue } );
 
 			if ( editing ) {
 				return [
-					inspectorControls,
+					controls,
 					<Placeholder
 						key="placeholder"
 						icon="media-audio"
@@ -139,6 +137,7 @@ registerBlockType( 'core/audio', {
 							buttonProps={ { isLarge: true } }
 							onSelect={ onSelectAudio }
 							type="audio"
+							value={ id }
 						>
 							{ __( 'Insert from Media Library' ) }
 						</MediaUploadButton>
@@ -149,21 +148,32 @@ registerBlockType( 'core/audio', {
 			/* eslint-disable jsx-a11y/no-static-element-interactions, jsx-a11y/onclick-has-role, jsx-a11y/click-events-have-key-events */
 			return [
 				controls,
-				inspectorControls,
-				<div key="audio">
+				<figure key="audio" className={ className }>
 					<audio controls="controls" src={ src } />
-				</div>,
+					{ ( ( caption && caption.length ) || !! focus ) && (
+						<Editable
+							tagName="figcaption"
+							placeholder={ __( 'Write caption…' ) }
+							value={ caption }
+							focus={ focus && focus.editable === 'caption' ? focus : undefined }
+							onFocus={ focusCaption }
+							onChange={ ( value ) => setAttributes( { caption: value } ) }
+							inlineToolbar
+						/>
+					) }
+				</figure>,
 			];
 			/* eslint-enable jsx-a11y/no-static-element-interactions, jsx-a11y/onclick-has-role, jsx-a11y/click-events-have-key-events */
 		}
 	},
 
 	save( { attributes } ) {
-		const { align, src } = attributes;
+		const { align, src, caption } = attributes;
 		return (
-			<div className={ align ? `align${ align }` : null }>
+			<figure className={ align ? `align${ align }` : null }>
 				<audio controls="controls" src={ src } />
-			</div>
+				{ caption && caption.length > 0 && <figcaption>{ caption }</figcaption> }
+			</figure>
 		);
 	},
 } );
